@@ -1,0 +1,19 @@
+#: Module.php
+msgctxt "simialbi/facebook/notifications"
+msgid "The \"client\" component is mandatory"
+msgstr "The \"client\" component is mandatory"
+
+#: components/FacebookApiClient.php
+msgctxt "simialbi/facebook/notifications"
+msgid "The \"credentials\" param is mandatory"
+msgstr "The \"credentials\" param is mandatory"
+
+#: omponents/FacebookApiClient.php
+msgctxt "simialbi/facebook/notifications"
+msgid "The client component credentials are invalid"
+msgstr "The client component credentials are invalid"
+
+#: omponents/FacebookApiClient.php
+msgctxt "simialbi/facebook/notifications"
+msgid "The \"redirect uri\" param is mandatory"
+msgstr "The \"redirect uri\" param is mandatory"
