@@ -9,6 +9,8 @@ namespace simialbi\yii2\facebook;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
+use yii\helpers\ArrayHelper;
+use yii\helpers\Url;
 use yii\web\Response;
 
 /**
@@ -34,17 +36,6 @@ use yii\web\Response;
  */
 class Facebook extends Component
 {
-
-    /**
-     * @var array A numeric array of permissions to ask the user for.
-     */
-    public $scopes = [];
-
-    /**
-     * @var string The OAuth 2.0 Redirect URI
-     */
-    public $redirectUri;
-
     /**
      * @var \Facebook\Facebook The Google API Client
      */
@@ -91,15 +82,6 @@ class Facebook extends Component
                 ]
             ));
         }
-        if (!isset($this->redirectUri)) {
-            throw new InvalidConfigException(Yii::t(
-                'simialbi/facebook/notifications',
-                'The "{param}" param is mandatory',
-                [
-                    'param' => 'redirect uri'
-                ]
-            ));
-        }
     }
 
     /**
@@ -130,13 +112,19 @@ class Facebook extends Component
     /**
      * Returns authentication url
      *
+     * @param array $options Set redirect uri and scopes
+     *
      * @return string
      * @throws \Facebook\Exceptions\FacebookSDKException
      */
-    public function getLoginUrl()
+    public function getLoginUrl($options = [])
     {
         $helper = $this->getApi()->getRedirectLoginHelper();
-        return $helper->getLoginUrl($this->redirectUri, $this->scopes);
+
+        $scheme = Yii::$app->request->isSecureConnection ? 'https' : 'http';
+        $redirectUri = ArrayHelper::remove($options, 'redirect_uri', Url::current([], $scheme));
+
+        return $helper->getLoginUrl($redirectUri, $options);
     }
 
     /**
@@ -145,7 +133,7 @@ class Facebook extends Component
      * @return \Facebook\Authentication\AccessToken|null access token
      * @throws \Facebook\Exceptions\FacebookSDKException
      */
-    public function getAuthToken()
+    public function getAccessToken()
     {
         return $this->getApi()->getDefaultAccessToken();
     }
