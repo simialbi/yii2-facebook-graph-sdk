@@ -36,9 +36,11 @@
   },
   "require-dev": {
     "yiisoft/yii2-coding-standards": "~2.0",
-    "phpunit/phpunit": "*"
+    "phpunit/phpunit": "*",
+    "facebook/php-business-sdk": "^3.2.6"
   },
   "suggest": {
+    "facebook/php-business-sdk": "Use facebook business sdk"
   },
   "config": {
     "process-timeout": 1800
