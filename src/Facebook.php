@@ -28,7 +28,7 @@ use yii\web\Response;
  *
  * @property string $authToken
  *
- * @property-read static $api
+ * @property-read \Facebook\Facebook $api
  * @property-read string $loginUrl
  * @property-write string $appId
  * @property-write string $appSecret
@@ -37,9 +37,14 @@ use yii\web\Response;
 class Facebook extends Component
 {
     /**
-     * @var \Facebook\Facebook The Google API Client
+     * @var \Facebook\Facebook The Facebook API client
      */
     private $_client;
+
+    /**
+     * @var \FacebookAds\Api The Facebook ads API client
+     */
+    private $_adsClient;
 
     /**
      * @var string Application Id
@@ -110,6 +115,34 @@ class Facebook extends Component
     }
 
     /**
+     * Configures Facebook Ads API Client component and returns it
+     *
+     * @return \FacebookAds\Api
+     *
+     * @throws InvalidConfigException
+     */
+    public function getAdsApi()
+    {
+        if (!class_exists('\FacebookAds\Api')) {
+            throw new InvalidConfigException(
+                'The package "facebook/php-business-sdk" must be installed to use ads api'
+            );
+        }
+
+        if (null !== $this->_adsClient) {
+            return $this->_adsClient;
+        }
+
+        $this->_adsClient = \FacebookAds\Api::init(
+            $this->_appId,
+            $this->_appSecret,
+            Yii::$app->session->get('facebookApiToken')
+        );
+
+        return $this->_adsClient;
+    }
+
+    /**
      * Returns authentication url
      *
      * @param array $options Set redirect uri and scopes
@@ -142,13 +175,11 @@ class Facebook extends Component
     /**
      * Access token setter
      *
-     * @param string $code string code from accounts.google.com
-     * @throws \Facebook\Exceptions\FacebookSDKException
+     * @param string $token string code from accounts.google.com
      */
-    public function setAuthToken($code)
+    public function setAccessToken($token)
     {
-        $helper = $this->getApi()->getOAuth2Client();
-        $token = $helper->getAccessTokenFromCode($code, $this->redirectUri);
+        $this->api->setDefaultAccessToken($token);
 
         if (Yii::$app->session) {
             Yii::$app->session->set('facebookApiToken', (string)$token);
