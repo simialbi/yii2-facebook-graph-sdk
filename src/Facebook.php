@@ -135,7 +135,8 @@ class Facebook extends Component
      */
     public function getAccessToken()
     {
-        return $this->getApi()->getDefaultAccessToken();
+        $helper = $this->getApi()->getRedirectLoginHelper();
+        return $helper->getAccessToken();
     }
 
     /**
