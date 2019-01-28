@@ -5,8 +5,8 @@ msgstr "The \"client\" component is mandatory"
 
 #: components/FacebookApiClient.php
 msgctxt "simialbi/facebook/notifications"
-msgid "The \"credentials\" param is mandatory"
-msgstr "The \"credentials\" param is mandatory"
+msgid "The \"{param}\" param is mandatory"
+msgstr "The \"{param}\" param is mandatory"
 
 #: omponents/FacebookApiClient.php
 msgctxt "simialbi/facebook/notifications"

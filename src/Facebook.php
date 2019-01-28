@@ -4,15 +4,11 @@
  * @author Simon Karlen <simi.albi@gmail.com>
  */
 
-namespace simialbi\yii2\facebook\components;
+namespace simialbi\yii2\facebook;
 
-
-use Facebook\Facebook;
 use Yii;
 use yii\base\Component;
-use yii\base\InvalidArgumentException;
 use yii\base\InvalidConfigException;
-use yii\helpers\Json;
 use yii\web\Response;
 
 /**
@@ -21,26 +17,23 @@ use yii\web\Response;
  * ```php
  * [
  *     'client' => [
- *         'credentials' => [
- *             'app_id' => '{app_id}',
- *             'app_secret' => '{app-secret}',
- *             // 'default_graph_version' => 'v2.10'
- *         ]
+ *             'appId' => '{app_id}',
+ *             'appSecret' => '{app-secret}',
+ *             // 'defaultGraphVersion' => 'v2.10'
  *     ]
  * ]
  * ```
  *
  * @property string $authToken
  *
- * @property-read Facebook $api
- * @property-read string $authUrl
+ * @property-read static $api
+ * @property-read string $loginUrl
+ * @property-write string $appId
+ * @property-write string $appSecret
+ * @property-write string $defaultGraphVersion
  */
-class FacebookApiClient extends Component
+class Facebook extends Component
 {
-    /**
-     * @var string|array the configuration json
-     */
-    public $credentials;
 
     /**
      * @var array A numeric array of permissions to ask the user for.
@@ -53,9 +46,24 @@ class FacebookApiClient extends Component
     public $redirectUri;
 
     /**
-     * @var Facebook The Google API Client
+     * @var \Facebook\Facebook The Google API Client
      */
-    private $client;
+    private $_client;
+
+    /**
+     * @var string Application Id
+     */
+    private $_appId;
+
+    /**
+     * @var string Application secret
+     */
+    private $_appSecret;
+
+    /**
+     * @var string Default Graph SDK version
+     */
+    private $_defaultGraphVersion = 'v2.10';
 
     /**
      * {@inheritdoc}
@@ -65,55 +73,58 @@ class FacebookApiClient extends Component
     {
         parent::init();
 
-        if (!isset($this->credentials)) {
+        if (!isset($this->_appId)) {
             throw new InvalidConfigException(Yii::t(
                 'simialbi/facebook/notifications',
-                'The "credentials" param is mandatory')
-            );
+                'The "{param}" param is mandatory',
+                [
+                    'param' => 'app id'
+                ]
+            ));
         }
-        if (is_string($this->credentials)) {
-            try {
-                $this->credentials = Json::decode($this->credentials);
-            } catch (InvalidArgumentException $e) {
-                throw new InvalidConfigException(Yii::t(
-                    'simialbi/facebook/notifications',
-                    'The client component credentials are invalid'
-                ), 0, $e);
-            }
-        }
-        if (!is_array($this->credentials) || !isset($this->credentials['app_id']) || !isset($this->credentials['app_secret'])) {
+        if (!isset($this->_appSecret)) {
             throw new InvalidConfigException(Yii::t(
                 'simialbi/facebook/notifications',
-                'The client component credentials are invalid'
+                'The "{param}" param is mandatory',
+                [
+                    'param' => 'app secret'
+                ]
             ));
         }
         if (!isset($this->redirectUri)) {
             throw new InvalidConfigException(Yii::t(
                 'simialbi/facebook/notifications',
-                'The "redirect uri" param is mandatory')
-            );
+                'The "{param}" param is mandatory',
+                [
+                    'param' => 'redirect uri'
+                ]
+            ));
         }
     }
 
     /**
      * Configures Facebook API Client component and returns it
      *
-     * @return Facebook
+     * @return \Facebook\Facebook
      * @throws \Facebook\Exceptions\FacebookSDKException
      */
     public function getApi()
     {
-        if (null !== $this->client) {
-            return $this->client;
+        if (null !== $this->_client) {
+            return $this->_client;
         }
 
-        $this->client = new Facebook($this->credentials);
+        $this->_client = new \Facebook\Facebook([
+            'app_id' => $this->_appId,
+            'app_secret' => $this->_appSecret,
+            'default_graph_version' => $this->_defaultGraphVersion
+        ]);
 
         if (Yii::$app->session && Yii::$app->session->has('facebookApiToken')) {
-            $this->client->setDefaultAccessToken(Yii::$app->session->get('facebookApiToken'));
+            $this->_client->setDefaultAccessToken(Yii::$app->session->get('facebookApiToken'));
         }
 
-        return $this->client;
+        return $this->_client;
     }
 
     /**
@@ -122,7 +133,7 @@ class FacebookApiClient extends Component
      * @return string
      * @throws \Facebook\Exceptions\FacebookSDKException
      */
-    public function getAuthUrl()
+    public function getLoginUrl()
     {
         $helper = $this->getApi()->getRedirectLoginHelper();
         return $helper->getLoginUrl($this->redirectUri, $this->scopes);
@@ -153,6 +164,30 @@ class FacebookApiClient extends Component
         if (Yii::$app->session) {
             Yii::$app->session->set('facebookApiToken', (string)$token);
         }
+    }
+
+    /**
+     * @param string $appId Application id
+     */
+    public function setAppId($appId)
+    {
+        $this->_appId = $appId;
+    }
+
+    /**
+     * @param string $appSecret Application secret
+     */
+    public function setAppSecret($appSecret)
+    {
+        $this->_appSecret = $appSecret;
+    }
+
+    /**
+     * @param string $defaultGraphVersion Application secret
+     */
+    public function setDefaultGraphVersion($defaultGraphVersion)
+    {
+        $this->_defaultGraphVersion = $defaultGraphVersion;
     }
 
     /**
