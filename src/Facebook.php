@@ -29,6 +29,7 @@ use yii\web\Response;
  * @property string $authToken
  *
  * @property-read \Facebook\Facebook $api
+ * @property-read \FacebookAds\Api $adsApi
  * @property-read string $loginUrl
  * @property-write string $appId
  * @property-write string $appSecret
